@@ -223,6 +223,7 @@ class VK
             $rs = $this->request($this->createUrl(
                 $this->getApiUrl($method, $format == 'array' ? 'json' : $format), $parameters));
         }
+        
         return $format == 'array' ? json_decode($rs, true) : $rs;
     }
 
@@ -245,21 +246,37 @@ class VK
      * @param   array $postfields
      * @return  string
      */
-    private function request($url, $method = 'GET', $postfields = array())
-    {
+    public function request($url, $method = 'GET', $postfields = array(), $repeat = 0) {
+
+        // echo $url;die('0');
         curl_setopt_array($this->ch, array(
-            CURLOPT_USERAGENT => 'VK/1.0 (+https://github.com/vladkens/VK))',
+            CURLOPT_USERAGENT => '',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_POST => ($method == 'POST'),
             CURLOPT_POSTFIELDS => $postfields,
             CURLOPT_URL => $url
         ));
-
-        return curl_exec($this->ch);
+        $r = curl_exec($this->ch);
+        if(!$r) {
+            $d = curl_error($this->ch);
+            echo $d;
+        }
+       
+       
+        $rr = json_decode($r, true);
+        if(isset($rr['error']['error_code']) AND trim($rr['error']['error_code']) == 6/* AND $rr['error']['error_msg'] == 'Too many requests per second'*/ AND $repeat < 3) {
+            sleep(1);
+            $r = $this->request($url, $method, $postfields, $repeat+1);
+        } else if($repeat > 3) {
+                
+        }
+           
+        
+        return $r;
     }
+
 
 }
 
 ;
-
