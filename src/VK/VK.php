@@ -258,12 +258,7 @@ class VK
             CURLOPT_URL => $url
         ));
         $r = curl_exec($this->ch);
-        if(!$r) {
-            $d = curl_error($this->ch);
-            echo $d;
-        }
-       
-       
+        
         $rr = json_decode($r, true);
         if(isset($rr['error']['error_code']) AND trim($rr['error']['error_code']) == 6/* AND $rr['error']['error_msg'] == 'Too many requests per second'*/ AND $repeat < 3) {
             sleep(1);
